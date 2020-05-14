@@ -93,7 +93,7 @@ private:
     ros::Time lastColor, lastDepth;
 
     bool nextColor, nextIrDepth;
-    double deltaT, depthShift, elapsedTimeColor, elapsedTimeIrDepth;
+    double deltaT, depthShift, elapsedTimeColor, elapsedTimeIrDepth, desireFPS;
     bool running, deviceActive, clientConnected, isSubscribedColor, isSubscribedDepth;
 
     enum Image
@@ -289,6 +289,7 @@ private:
                               << "   worker_threads: " FG_CYAN << worker_threads << NO_COLOR);
 
         deltaT = fps_limit > 0 ? 1.0 / fps_limit : 0.0;
+        desireFPS = fps_limit > 0 ? fps_limit : 60;
 
         if (calib_path.empty() || calib_path.back() != '/')
         {
@@ -891,7 +892,7 @@ private:
         nextColor = true;
         nextIrDepth = true;
 
-        auto rate = ros::Rate(fps_limit > 0 ? fps_limit : 60);
+        auto rate = ros::Rate(desireFPS);
 
         for (; running && ros::ok();)
         {
@@ -1333,7 +1334,7 @@ private:
 
         while (frame != pubFrame)
         {
-            std::this_thread::sleep_for(std::chrono::microseconds(100));
+            std::this_thread::sleep_for(std::chrono::microseconds(1));
         }
         lockPub.lock();
         for (size_t i = begin; i < end; ++i)
